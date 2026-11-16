@@ -64,6 +64,51 @@ Removed from V4 archive (stock kernel versions are fine on 6.12):
 - panel-ilitek-ili9881c.ko
 - drm_panel_orientation_quirks.ko
 
+## Kernels published only as Raspberry Pi OS packages
+
+6.12.115 exists only as Raspberry Pi OS packages and is built by
+build-script/build_rpt.sh. What differs from download_build.sh:
+
+|                 | download_build.sh                    | build_rpt.sh                                   |
+|-----------------|--------------------------------------|------------------------------------------------|
+| Kernel source   | raspberrypi/linux at the rpi-firmware commit | upstream tarball plus the package's patch series, sha256 verified |
+| Configuration   | bcm2711_defconfig                    | the shipped kernel's own, from its headers package |
+| Symbol versions | from building the whole kernel       | the shipped kernel's Module.symvers            |
+| Compiler        | cross compilers on the build host    | the distribution and compiler that built the kernel, in a container |
+| What is built   | kernel, all modules, dtbs            | the two modules and the three overlays         |
+| Kernel releases | {version}-v7l+, {version}-v8+        | {version}+rpt-rpi-v7l, {version}+rpt-rpi-v8    |
+
+The build stops unless the container reproduces the shipped kernel's
+configuration exactly, each module reports exactly the kernel release it is
+packed for, and each module carries symbol versions.
+
+The Makefile line for panel-dsi-mt is injected into a staged copy of the
+panel directory. Kconfig.inject is not read by this build: the symbol is
+passed on the make command line.
+
+Every file in the set's sound_usb/ replaces the kernel's file of the same
+name. The 6.12.115 set holds quirks.c, endpoint.c and stream.c.
+
+    modules-rpi-6.12.115-motivo.tar.gz
+      boot/overlays/
+        motivo-panel-a.dtbo
+        motivo-panel-b.dtbo
+        es9039q2m-i2s.dtbo
+      lib/modules/6.12.115+rpt-rpi-v7l/kernel/
+        drivers/gpu/drm/panel/panel-dsi-mt.ko.xz
+        sound/usb/snd-usb-audio.ko.xz
+      lib/modules/6.12.115+rpt-rpi-v8/kernel/
+        drivers/gpu/drm/panel/panel-dsi-mt.ko.xz
+        sound/usb/snd-usb-audio.ko.xz
+
+Adding a later kernel of this kind:
+
+1. Create source_files/{version}/ from the previous set; carry each file
+   in sound_usb/ onto that kernel's stock file
+2. Add a case entry in build_rpt.sh with the names and sha256 checksums of
+   the source tarball, the packaging tarball and the two headers packages
+3. Build
+
 ## Why quirks.c remains a replacement
 
 The DSD VENDOR_FLG entries sit in the middle of a static const array in

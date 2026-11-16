@@ -15,6 +15,7 @@ producing drop-in modules and overlays for Volumio OS.
 | motivo-panel-b-overlay.dts | Device tree overlay for Panel B (Goodix GT911 touch) |
 | es9039q2m-i2s-overlay.dts | Device tree overlay for ES9039Q2M DAC over I2S |
 | quirks.c | USB audio DSD quirk flags for audiophile DAC hardware |
+| endpoint.c, stream.c | USB audio, 6.12.115 set: interface setup order for Teac and Esoteric DACs, S32_LE in place of S24_3LE on dwc2 hosts |
 
 ## Build output
 
@@ -53,6 +54,24 @@ cd build-script
 ./re-build.sh
 ```
 
+### Kernel 6.12.115
+
+Raspberry Pi publishes 6.12.115 only as Raspberry Pi OS packages, with the
+kernel releases `6.12.115+rpt-rpi-v7l` and `6.12.115+rpt-rpi-v8`. It has no
+rpi-firmware commit, so it has its own script:
+
+```
+cd build-script
+./build_rpt.sh
+```
+
+This needs docker, and qemu-user-static registered with binfmt, in place of
+the cross-compilation toolchains. The modules are built against the shipped
+kernel: its configuration and symbol versions are taken from its headers
+packages, and each flavour is compiled in a container of the distribution
+and compiler that built it. Running the script again rebuilds after an edit
+to the source files.
+
 ## How it works
 
 The build script downloads the specified Raspberry Pi kernel source,
@@ -74,6 +93,10 @@ specification of the injection approach.
 3. Build
 
 No other changes needed if the source files are unchanged.
+
+For a kernel published only as Raspberry Pi OS packages, add the case entry
+in `build_rpt.sh` instead: the names and sha256 checksums of the source
+tarball, the packaging tarball and the two headers packages.
 
 ## Related repositories
 

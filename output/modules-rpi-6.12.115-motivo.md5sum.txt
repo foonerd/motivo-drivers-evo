@@ -1,0 +1,1 @@
+78106fb26e1125148649005477122ebc  modules-rpi-6.12.115-motivo.tar.gz
